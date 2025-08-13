@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import Combine
 
 class AudioEngine: ObservableObject {
     private var engine = AVAudioEngine()
@@ -23,9 +24,11 @@ class AudioEngine: ObservableObject {
     private func setupAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker])
-            
-            
+            try audioSession.setCategory(
+                .playAndRecord,
+                mode: .voiceChat,
+                options: [.allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
+            )
         } catch {
             print("Failed to set up audio session: \(error)")
         }
