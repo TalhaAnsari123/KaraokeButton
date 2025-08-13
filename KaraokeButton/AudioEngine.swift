@@ -40,8 +40,33 @@ class AudioEngine: ObservableObject {
 
         engine.attach(mixer)
 
-        let inputFormat = inputNode.outputFormat(forBus: 0)
-        let outputFormat = outputNode.inputFormat(forBus: 0)
+        let audioSession = AVAudioSession.sharedInstance()
+
+        // Obtain formats from hardware. If they are invalid (zero sample rate or
+        // channel count), fall back to the session's defaults. This prevents
+        // crashes when the engine is initialized in environments without
+        // fully configured audio hardware, such as SwiftUI previews.
+        let rawInputFormat = inputNode.outputFormat(forBus: 0)
+        let inputFormat: AVAudioFormat
+        if rawInputFormat.sampleRate > 0 && rawInputFormat.channelCount > 0 {
+            inputFormat = rawInputFormat
+        } else {
+            inputFormat = AVAudioFormat(
+                standardFormatWithSampleRate: audioSession.sampleRate,
+                channels: AVAudioChannelCount(max(1, audioSession.inputNumberOfChannels))
+            )!
+        }
+
+        let rawOutputFormat = outputNode.inputFormat(forBus: 0)
+        let outputFormat: AVAudioFormat
+        if rawOutputFormat.sampleRate > 0 && rawOutputFormat.channelCount > 0 {
+            outputFormat = rawOutputFormat
+        } else {
+            outputFormat = AVAudioFormat(
+                standardFormatWithSampleRate: audioSession.sampleRate,
+                channels: AVAudioChannelCount(max(1, audioSession.outputNumberOfChannels))
+            )!
+        }
 
         engine.connect(inputNode, to: mixer, format: inputFormat)
         engine.connect(mixer, to: outputNode, format: outputFormat)
